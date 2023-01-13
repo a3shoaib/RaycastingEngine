@@ -52,7 +52,20 @@ function GetRays(){
 }
 function RenderScene(rays){}
 // x,y positions of the minimap on the screen, scale of map projection, rays is the array of rays
-function RenderMinimap(x, y, scale, rays){}
+function RenderMinimap(posX = 0, posY = 0, scale = 1, rays){
+    // Render cells
+    const CellSize = scale * CELL_SIZE;
+    // Loop through the map, y is index of the row
+    map.forEach((row, y) => {
+        // Loop through each cell
+        row.forEach((cell, x) =>{
+            if (cell) {
+                context.fillStyle = "grey"
+                context.fillRect(posX + x * CellSize, posY + y * CellSize, CellSize, CellSize)
+            }
+        })
+    })
+}
 
 // Game and rendering logic 
 function Gameloop() {
