@@ -111,16 +111,50 @@ function GetVCollision (angle) {
     return { angle, distance: distance(player.x, player.y, NextX, NextY), vertical: true }
 }
 
+function GetHCollision(angle) {
+    const up = Math.abs(Math.floor(angle / Math.PI) % 2);
+    const FirstY = up ? Math.floor(player.y / CELL_SIZE) * CELL_SIZE : Math.floor(player.y / CELL_SIZE) * CELL_SIZE + CELL_SIZE
+
+    const FirstX = player.x + (FirstY - player.y) / Math.tan(angle);
+
+    const yA = up ? -CELL_SIZE : CELL_SIZE;
+    const xA = yA / Math.tan(angle);
+
+    let wall;
+    let NextX = FirstX;
+    let NextY = FirstY;
+
+    while(!wall){
+        const CellX = Math.floor(NextX / CELL_SIZE);
+        const CellY = up ? Math.floor(NextY / CELL_SIZE) -1 : Math.floor(NextY / CELL_SIZE);
+
+        if (OutOfMapBounds(CellX, CellY)) {
+            break;
+        }
+
+        wall = map[CellY][CellX];
+        if(!wall) {
+            NextX += xA
+            NextY += yA
+        }
+    }
+    return {
+        angle, 
+        distance: distance(player.x, player.y, NextX, NextY),
+        vertical: false,
+    };
+}
+
 function CastRay(angle) {
     // Calculate nearest intersection by checking each row and column if there is a wall 
     const vCollission = GetVCollision(angle)
-    //const hCollission = GetHCollision(angle)
-
-    return vCollission
+    const hCollission = GetHCollision(angle)
 
     // Return the one with smallest value for distance
-    return hCollission.distance >= vCollission.distance ? vCollission : hCollission
+    return hCollission.distance >= vCollission.distance ? vCollission : hCollission;
 }
+
+
 
 // Cast rays 
 function GetRays(){
