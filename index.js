@@ -21,7 +21,7 @@ const CELL_SIZE = 60;
 const PLAYER_SIZE = 8;
 
 // Field of view
-const FOV = 60;
+const FOV = ToRadians(60);
 
 // Object to hold color scheme
 const COLORS = {
