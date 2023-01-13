@@ -177,10 +177,17 @@ function GetRays(){
     })
 }
 
+// Fix fish eye effect
+function AdjustFishEye(distance, angle, PlayerAngle) {
+    // Calculate difference between the angles
+    const diff = angle - PlayerAngle;
+    return distance * Math.cos(diff);
+}
+
 // Generate a scene
 function RenderScene(rays){
     rays.forEach((ray, i) => {
-        const distance = ray.distance;
+        const distance = AdjustFishEye(ray.distance, ray.angle, player.angle);
         // Calculate scene height
         // The further away, the distance is bigger and the smaller the projected size of the wall
         // 277 is the distance to projection screen (player eyes to screen)
@@ -229,7 +236,7 @@ function RenderMinimap(posX = 0, posY = 0, scale = 1, rays){
         context.stroke()
     })
 
-    context.fillStyle = "blue"
+    context.fillStyle = "maroon"
     context.fillRect(
         posX + player.x * scale - PLAYER_SIZE/2,
         posY + player.y * scale - PLAYER_SIZE/2,
@@ -239,7 +246,7 @@ function RenderMinimap(posX = 0, posY = 0, scale = 1, rays){
     )
     // Ray represents the direction of the player (projected from player)
     const RayLength = PLAYER_SIZE * 2;
-    context.strokeStyle = "blue"
+    context.strokeStyle = "maroon"
     context.beginPath()
     // Move to player position
     context.moveTo(player.x * scale + posX, player.y * scale + posY)
