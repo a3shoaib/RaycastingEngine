@@ -20,6 +20,11 @@ const CELL_SIZE = 60;
 // Constant to hold player size
 const PLAYER_SIZE = 8;
 
+// Object to hold color scheme
+const COLORS = {
+    rays: "#ffa600"
+}
+
 // Each row will contain horizontal cells and main array will be array of those rows
 // 1 for wall, 0 for empty cells
 const map = [
@@ -48,7 +53,11 @@ function ClearScreen(){
     context.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-function MovePlayer(){}
+function MovePlayer(){
+    // Calculate movement
+    player.x += Math.cos(player.angle) * player.speed
+    player.y += Math.sin(player.angle) * player.speed
+}
 function GetRays(){
     return [];
 }
@@ -67,6 +76,23 @@ function RenderMinimap(posX = 0, posY = 0, scale = 1, rays){
             };
         });
     });
+
+    // Render rays
+    context.strokeStyle = COLORS.rays;
+    rays.forEach(ray => {
+        // Begin a new path for each ray
+        context.beginPath()
+        // Move to initial position of the player since all rays will be projected from the player
+        context.moveTo(player.x * scale + posX, player.y * scale + posY)
+        // Draw line to final destination point
+        context.lineTo(
+            // Calculate x portion of line (each ray has direction and distance between the player and nearest obstacle )
+            (player.x + Math.cos(ray.angle) * ray.distance) *  scale, 
+            (player.y + Math.sin(ray.angle) * ray.distance) *  scale,
+        )
+        context.closePath()
+        context.stroke()
+    })
 
     context.fillStyle = "blue"
     context.fillRect(
@@ -109,3 +135,29 @@ function Gameloop() {
 
 // Every tick (30ms), execute gameloop function
 setInterval(Gameloop, TICK);
+
+function ToRadians (deg) {
+    return (deg * Math.PI) / 180
+}
+
+// Implement player movements
+// Add event listeners for up and down arrow keys
+document.addEventListener("keydown", (e) => {
+    if(e.key == "ArrowUp") {
+        player.speed = 2;
+    }
+    if(e.key == "ArrowDown") {
+        player.speed = -2;
+    }
+})
+
+document.addEventListener("keyup", (e) => {
+    if(e.key == 'ArrowUp' || e.key == "ArrowDown") {
+        player.speed = 0;
+    }
+})
+
+// Calculate direction of the player by tracking mouse movement 
+document.addEventListener("mousemove", (e) => {
+    player.angle += ToRadians(e.movementX)
+})
