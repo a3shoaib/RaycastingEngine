@@ -20,6 +20,9 @@ const CELL_SIZE = 60;
 // Constant to hold player size
 const PLAYER_SIZE = 8;
 
+// Field of view
+const FOV = 60;
+
 // Object to hold color scheme
 const COLORS = {
     rays: "#ffa600"
@@ -58,8 +61,82 @@ function MovePlayer(){
     player.x += Math.cos(player.angle) * player.speed
     player.y += Math.sin(player.angle) * player.speed
 }
+
+function OutOfMapBounds(x, y) {
+    // If x is more than the amount of cells in the row
+    return x < 0 || x >= map[0].length || y < 0 || y >= map.length
+}
+
+// Calculate distance
+function distance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+}
+
+function GetVCollision (angle) {
+    // Check if facing right
+    const right = Math.abs(Math.floor((angle-Math.PI/2) / Math.PI) % 2)
+    // Calculate first X intersection
+    const FirstX = right ? Math.floor(player.x / CELL_SIZE) * CELL_SIZE + CELL_SIZE : Math.floor(player.x / CELL_SIZE) * CELL_SIZE
+    const FirstY = player.y + (FirstX - player.x) * Math.tan(angle)
+
+    // Horizontal step
+    const xA = right ? CELL_SIZE : -CELL_SIZE
+    // Vertical step
+    const yA = xA * Math.tan(angle)
+
+    // Check if there is a wall on any of the intersection points
+    let wall;
+    let NextX = FirstX;
+    let NextY = FirstY;
+
+    // While there is no wall
+    while(!wall){
+        // Calculate map coordinates
+        const CellX = right ? Math.floor(NextX / CELL_SIZE) : Math.floor(NextX / CELL_SIZE) - 1
+        const CellY = Math.floor(NextY / CELL_SIZE)
+
+        if (OutOfMapBounds(CellX, CellY)) {
+            break 
+        }
+        // Otherwise get next wall point
+        wall = map[CellY][CellX]
+        if(!wall) {
+            // Append step
+            NextX += xA
+            NextY += yA
+        }
+    }
+    // Finish because broke out or there was a wall
+    // Return new object that is new ray 
+    return { angle, distance: distance(player.x, player.y, NextX, NextY), vertical: true }
+}
+
+function CastRay(angle) {
+    // Calculate nearest intersection by checking each row and column if there is a wall 
+    const vCollission = GetVCollision(angle)
+    //const hCollission = GetHCollision(angle)
+
+    return vCollission
+
+    // Return the one with smallest value for distance
+    return hCollission.distance >= vCollission.distance ? vCollission : hCollission
+}
+
+// Cast rays 
 function GetRays(){
-    return [];
+    // Calculating distance to the nearest obstacle from the player
+    // Begin casting rays from initial angle (player angle - 1/2 field of view)
+    const InitialAngle = player.angle - FOV / 2;
+    // Shoot rays from the player angle, #column number of times
+    const NumbeOfRays = SCREEN_WIDTH;
+    // Increment for each of the projected rays
+    const AngleStep = FOV / NumbeOfRays;
+    // Map thru the number of array  and populate it with values (object containing angle and distance to nearest obstacle)
+    return Array.from({ length: NumbeOfRays }, (_, i) => {
+        const angle = InitialAngle + i * AngleStep;
+        const ray = CastRay(angle)
+        return ray
+    })
 }
 function RenderScene(rays){}
 // x,y positions of the minimap on the screen, scale of map projection, rays is the array of rays
@@ -160,4 +237,4 @@ document.addEventListener("keyup", (e) => {
 // Calculate direction of the player by tracking mouse movement 
 document.addEventListener("mousemove", (e) => {
     player.angle += ToRadians(e.movementX)
-})
+}) 
