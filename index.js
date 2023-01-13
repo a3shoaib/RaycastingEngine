@@ -16,15 +16,19 @@ const TICK = 30;
 // Allows to draw on the canvas, provides the api for it
 const context = canvas.getContext("2d")
 // For map representation to render it
-const CELL_SIZE = 60;
+const CELL_SIZE = 64;
 // Constant to hold player size
-const PLAYER_SIZE = 8;
+const PLAYER_SIZE = 10;
 
 // Field of view
 const FOV = ToRadians(60);
 
 // Object to hold color scheme
 const COLORS = {
+    floor: "#e3c099",
+    ceiling: "#87ceeb",   
+    wall: "#1e4620",
+    WallDark: "#0f2310",
     rays: "#ffa600"
 }
 
@@ -113,7 +117,7 @@ function GetVCollision (angle) {
 
 function GetHCollision(angle) {
     const up = Math.abs(Math.floor(angle / Math.PI) % 2);
-    const FirstY = up ? Math.floor(player.y / CELL_SIZE) * CELL_SIZE : Math.floor(player.y / CELL_SIZE) * CELL_SIZE + CELL_SIZE
+    const FirstY = up ? Math.floor(player.y / CELL_SIZE) * CELL_SIZE : Math.floor(player.y / CELL_SIZE) * CELL_SIZE + CELL_SIZE;
 
     const FirstX = player.x + (FirstY - player.y) / Math.tan(angle);
 
@@ -172,7 +176,27 @@ function GetRays(){
         return ray
     })
 }
-function RenderScene(rays){}
+
+// Generate a scene
+function RenderScene(rays){
+    rays.forEach((ray, i) => {
+        const distance = ray.distance;
+        // Calculate scene height
+        // The further away, the distance is bigger and the smaller the projected size of the wall
+        // 277 is the distance to projection screen (player eyes to screen)
+        const WallHeight = ((CELL_SIZE * 5) / distance) * 277
+        // Draw vertical line
+        context.fillStyle = ray.vertical ? COLORS.WallDark : COLORS.wall;
+        context.fillRect(i, SCREEN_HEIGHT / 2 - WallHeight /2, 1, WallHeight)
+        // Render floor
+        context.fillStyle = COLORS.floor;
+        context.fillRect(i, SCREEN_HEIGHT / 2 + WallHeight /2, 1, SCREEN_HEIGHT /2 - WallHeight /2)
+        // Render ceiling
+        context.fillStyle = COLORS.ceiling;
+        context.fillRect(i, 0, 1, SCREEN_HEIGHT /2 - WallHeight /2)
+    }) 
+}
+
 // x,y positions of the minimap on the screen, scale of map projection, rays is the array of rays
 function RenderMinimap(posX = 0, posY = 0, scale = 1, rays){
     // Render cells
